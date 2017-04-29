@@ -23,13 +23,14 @@ func (s templateRenderer) ContentType() string {
 func (s templateRenderer) Render(w io.Writer, data Data) error {
 	var body template.HTML
 	var err error
-	for _, name := range s.names {
-
-		body, err = s.exec(name, data)
-		if err != nil {
-			return err
-		}
-		data["yield"] = body
+	if len(s.names) > 1 {
+		layoutFile = s.names[1]
+	}else{
+		layoutFile = s.names[0]
+	}
+	body, err = s.exec(layoutFile, data)
+	if err != nil {
+		return err
 	}
 	w.Write([]byte(body))
 	return nil
@@ -41,6 +42,10 @@ func (s templateRenderer) partial(name string, dd Data) (template.HTML, error) {
 	return s.exec(name, dd)
 }
 
+func (s templateRenderer) yield(dd Data) (template.HTML, error) {
+	return s.exec(s.names[0], dd)
+}
+
 func (s templateRenderer) exec(name string, data Data) (template.HTML, error) {
 	source, err := s.TemplatesBox.MustBytes(name)
 	if err != nil {
@@ -49,6 +54,7 @@ func (s templateRenderer) exec(name string, data Data) (template.HTML, error) {
 
 	helpers := map[string]interface{}{
 		"partial": s.partial,
+		"yield":   s.yield,
 	}
 
 	for k, v := range s.Helpers {
