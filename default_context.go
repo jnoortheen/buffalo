@@ -129,7 +129,10 @@ func (d *DefaultContext) Render(status int, rr render.Renderer) error {
 		d.LogField("render", time.Now().Sub(now))
 	}()
 	if rr != nil {
-		data := d.data
+		data := map[string]interface{}{}
+		for k, v := range d.data {
+			data[k] = v
+		}
 		pp := map[string]string{}
 		for k, v := range d.params {
 			pp[k] = v[0]
